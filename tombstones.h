@@ -4,6 +4,7 @@
 
 #if !defined(__TOMBSTONES_H__)
 #define __TOMBSTONES_H__
+#include <iostream>
 
 template <class T> class Pointer;
 template <class T> void free(Pointer<T>& obj);
@@ -42,24 +43,35 @@ Pointer<T>::Pointer() {
 
 template <class T>
 Pointer<T>::Pointer(Pointer<T> &p) {
-    ptr = new T;
-    *ptr = *(p.getPointer());
+    if (!p.getPointer()) ptr = NULL;
+    else { ptr = new T; *ptr = *(p.getPointer()); }
 }
 
 template <class T>
 Pointer<T>::Pointer(T* p) {
-    ptr = new T;
-    *ptr = *p;
+    if (!p) ptr = NULL;
+    else { ptr = new T; *ptr = *p; }
 }
 
 template <class T>
 Pointer<T>::~Pointer() {
-    delete ptr;
+    if (!ptr) delete ptr;
 }
 
 template <class T>
+T& Pointer<T>::operator*() const {
+    return *ptr;
+}
+
+template <class T>
+T* Pointer<T>::operator->() const {
+    return ptr;
+}
+
+// I don't know if this is assignment of reference or value.
+template <class T>
 Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
-    *ptr = *(assignment.getPointer());
+    ptr = assignment.getPointer();
     return *this;
 }
 
@@ -85,7 +97,10 @@ bool Pointer<T>::operator!=(const int comp) const {
     return (!ptr && comp == 0) ? 0 : 1;
 }
 
-
+template <class T>
+void free(Pointer<T>& obj) {
+    obj.~Pointer();
+}
 
 
 #endif // __TOMBSTONES_H__
