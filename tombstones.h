@@ -48,11 +48,13 @@ Pointer<T>::Pointer(Pointer<T> &p) {
 
 template <class T>
 Pointer<T>::Pointer(T* p) {
-    ptr = p;
+    ptr = new T;
+    *ptr = *p;
 }
 
 template <class T>
 Pointer<T>::~Pointer() {
+    delete ptr;
 }
 
 template <class T>
@@ -60,6 +62,30 @@ Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
     *ptr = *(assignment.getPointer());
     return *this;
 }
+
+template <class T>
+bool Pointer<T>::operator==(const Pointer<T>& other) const {
+    return ptr == other.getPointer();
+}
+
+template <class T>
+bool Pointer<T>::operator!=(const Pointer<T>& other) const {
+    return ptr != other.getPointer();
+}
+
+// Generally, "new" will not return a NULL pointer,
+// so the two overload here will return a not NULL result.
+template <class T>
+bool Pointer<T>::operator==(const int comp) const {
+    return (!ptr && comp == 0) ? 1 : 0;
+}
+
+template <class T>
+bool Pointer<T>::operator!=(const int comp) const {
+    return (!ptr && comp == 0) ? 0 : 1;
+}
+
+
 
 
 #endif // __TOMBSTONES_H__
