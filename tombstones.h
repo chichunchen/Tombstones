@@ -10,6 +10,8 @@ template <class T> void free(Pointer<T>& obj);
 
 template <class T>
 class Pointer {
+private:
+    T* ptr;
 public:
     Pointer<T>();                               // default constructor
     Pointer<T>(Pointer<T>&);                        // copy constructor
@@ -29,7 +31,35 @@ public:
         // true iff Pointer is null and int is zero
     bool operator!=(const int) const;
         // false iff Pointer is null and int is zero
+    
+    T* getPointer() const { return ptr; } // Just for test. Of course we can keep this.
 };
+
+template <class T>
+Pointer<T>::Pointer() {
+    ptr = new T();
+}
+
+template <class T>
+Pointer<T>::Pointer(Pointer<T> &p) {
+    ptr = new T;
+    *ptr = *(p.getPointer());
+}
+
+template <class T>
+Pointer<T>::Pointer(T* p) {
+    ptr = p;
+}
+
+template <class T>
+Pointer<T>::~Pointer() {
+}
+
+template <class T>
+Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
+    *ptr = *(assignment.getPointer());
+    return *this;
+}
 
 
 #endif // __TOMBSTONES_H__
