@@ -17,6 +17,12 @@ void dangling_pointer_error(Pointer<T>& obj) {
 }
 
 template <class T>
+void leak_memory_error(Pointer<T>& obj) {
+    std::cerr << "Memory leak, address: " << (obj.tomb)->content << std::endl;
+    std::terminate();
+}
+
+template <class T>
 class Tomb {
 public:
     T* content;
@@ -97,8 +103,9 @@ Pointer<T>::Pointer(T* p) {
 template <class T>
 Pointer<T>::~Pointer() {
     // Need revise
-//    std::cout << "destructor address: " << this << std::endl;
-//    if (tomb->ref_cnt > 0) delete tomb;
+    std::cout << "destructor address: " << this << std::endl;
+    if (tomb->ref_cnt > 0)
+        leak_memory_error(*this);
 }
 
 template <class T>
