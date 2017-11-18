@@ -53,6 +53,7 @@ public:
     T& operator*() const;                   // deferencing
     T* operator->() const;                  // field dereferencing
     Pointer<T>& operator=(const Pointer<T>&);       // assignment
+    Pointer<T>& operator=(T*);                // assignment2
     friend void free<T>(Pointer<T>&);           // delete pointed-at object
         // This is essentially the inverse of the new inside the call to
         // the bootstrapping constructor.
@@ -132,6 +133,20 @@ Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
 }
 
 template <class T>
+Pointer<T>& Pointer<T>::operator=(T* t) {
+    Pointer<T> assignment(t);
+
+
+    tomb->ref_cnt--;
+    tomb = new Tomb<T>;
+    tomb->content = assignment.tomb->content;
+    tomb->ref_cnt = assignment.tomb->ref_cnt;
+
+    free(assignment);
+    return *this;
+}
+
+template <class T>
 bool Pointer<T>::operator==(const Pointer<T>& other) const {
     return tomb->content == (other.tomb)->content;
 }
@@ -157,11 +172,14 @@ bool Pointer<T>::operator!=(const int comp) const {
 template <class T>
 void free(Pointer<T>& obj) {
     std::cout << "Freeing address: " << (obj.tomb)->content << std::endl;
-    if (!((obj.tomb)->content)) {
+    // if null and reference count is 0
+    if (!((obj.tomb)->content) || obj.tomb->ref_cnt == 0) {
         dangling_pointer_error(obj);
     }
     else {
-        free((obj.tomb)->content);
+//        free((obj.tomb)->content);
+        free(obj.tomb->content);
+        obj.tomb->ref_cnt = 0;
         (obj.tomb)->content = NULL;
     }
 }
