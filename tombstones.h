@@ -9,6 +9,8 @@
 
 template <class T> class Pointer;
 template <class T> void free(Pointer<T>& obj);
+template <class T> bool operator==(const int lhs, const Pointer<T>& rhs);
+template <class T> bool operator!=(const int lhs, const Pointer<T>& rhs); 
 
 void dangling_pointer_error() {
     std::cerr << "Dangling reference" << std::endl;
@@ -42,9 +44,6 @@ template <class T>
 class Pointer {
 public:
     Tomb<T>* tomb;
-    bool tomb_allocated;                        // true if tomb is allocated
-    bool is_null;                               // tomb content is null or not
-    bool fleeting = false;
 
     Pointer<T>();                               // default constructor
     Pointer<T>(Pointer<T>&);                        // copy constructor
@@ -54,7 +53,7 @@ public:
     T& operator*() const;                   // deferencing
     T* operator->() const;                  // field dereferencing
     Pointer<T>& operator=(const Pointer<T>&);       // assignment
-    Pointer<T>& operator=(T*);                // assignment2
+//    Pointer<T>& operator=(T*);                // assignment2
     friend void free<T>(Pointer<T>&);           // delete pointed-at object
         // This is essentially the inverse of the new inside the call to
         // the bootstrapping constructor.
@@ -66,7 +65,9 @@ public:
     bool operator!=(const int) const;
         // false iff Pointer is null and int is zero
     
-    T* getPointer() const { return tomb; } // Just for test. Of course we can keep this.
+    // overloading for (0 == p) and (0 != p) cases.
+    template <class U> friend bool operator==(const int, const Pointer<U>&);
+    template <class U> friend bool operator!=(const int, const Pointer<U>&); 
 };
 
 // default constructor
@@ -75,7 +76,6 @@ Pointer<T>::Pointer() {
     tomb = new Tomb<T>;
     tomb->content = NULL;
     tomb->ref_cnt = 0;
-    is_null = true;
     std::cout << "default constructor" << std::endl;
 }
 
@@ -84,9 +84,6 @@ template <class T>
 Pointer<T>::Pointer(Pointer<T> &p) {
     *&tomb = p.tomb;
 
-//    if (p.tomb->ref_cnt <= 0) {
-//        dangling_pointer_error();
-//    }
     if (!(tomb->content)) {
         tomb->ref_cnt = 0;
     }
@@ -94,7 +91,6 @@ Pointer<T>::Pointer(Pointer<T> &p) {
         tomb->ref_cnt++;
     }
 
-    is_null = p.is_null;
     std::cout << "copy constructor" << std::endl;
 }
 
@@ -104,7 +100,6 @@ Pointer<T>::Pointer(T* p) {
 
     tomb = new Tomb<T>;
     tomb->content = p;
-    is_null = (p == NULL) ? true : false;
     std::cout << "bootstrap: " <<
               (p == NULL) << (tomb->content == NULL) << std::endl;
 
@@ -118,10 +113,13 @@ Pointer<T>::Pointer(T* p) {
 
 template <class T>
 Pointer<T>::~Pointer() {
+    // Still need consideration.
     std::cout << "destructor address: " << this << std::endl;
-    tomb->ref_cnt--;
-    if (tomb->ref_cnt == 0 && !fleeting)
-        leak_memory_error();
+    if (tomb->ref_cnt > 0) {
+        if (--(tomb->ref_cnt) == 0) {
+            leak_memory_error();
+        }
+    }
 }
 
 template <class T>
@@ -141,10 +139,11 @@ T* Pointer<T>::operator->() const {
 template <class T>
 Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
     std::cout << "assignment" << std::endl;
-
-    tomb->ref_cnt--;
-    if (tomb->ref_cnt == 0) {
-        leak_memory_error();
+    
+    if (tomb->ref_cnt > 0) {
+        if (--(tomb->ref_cnt) == 0) {
+            leak_memory_error();
+        }
     }
     tomb = assignment.tomb;
 
@@ -153,20 +152,6 @@ Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
             tomb->ref_cnt++;
         }
     }
-
-    return *this;
-}
-
-template <class T>
-Pointer<T>& Pointer<T>::operator=(T* t) {
-    Pointer<T> assignment(t);
-
-    tomb->ref_cnt--;
-    tomb = new Tomb<T>;
-    tomb->content = assignment.tomb->content;
-    tomb->ref_cnt = assignment.tomb->ref_cnt;
-    
-    assignment.fleeting = true;
 
     return *this;
 }
@@ -195,14 +180,27 @@ bool Pointer<T>::operator!=(const int comp) const {
 }
 
 template <class T>
+bool operator==(const int lhs, const Pointer<T>& rhs) {
+    return (!(rhs.tomb->content) && lhs == 0) ? 1 : 0;
+}
+
+template <class T>
+bool operator!=(const int lhs, const Pointer<T>& rhs) {
+    // std::cout << "comp " << comp << " !=, tomb->content " << tomb->content << std::endl;
+    return (!(rhs.tomb->content) && lhs == 0) ? 0 : 1;
+}
+
+
+template <class T>
 void free(Pointer<T>& obj) {
     std::cout << "Freeing address: " << (obj.tomb)->content << std::endl;
-    // if null and reference count is 0
+    // If reference count is not 1, which means either it's RIP 
+    // or there are more than 1 pointers pointing to the object.
     if (obj.tomb->ref_cnt != 1) {
         dangling_pointer_error();
     }
     else {
-        free((obj.tomb)->content);
+        delete obj.tomb->content;
         obj.tomb->ref_cnt = 0;
         (obj.tomb)->content = NULL;
     }
