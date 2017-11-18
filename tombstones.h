@@ -219,7 +219,7 @@ bool Pointer<T, check>::operator!=(const Pointer<T, check>& other) const {
     if (check) {
         return tomb->content != (other.tomb)->content;
     } else {
-        return raw_ptr != raw_ptr;
+        return raw_ptr != other.raw_ptr;
     }
 }
 
