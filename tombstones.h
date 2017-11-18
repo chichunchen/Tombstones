@@ -71,17 +71,22 @@ public:
 };
 
 // default constructor
+// create a bare-bone tomb for later use
 template <class T>
 Pointer<T>::Pointer() {
+    std::cout << "default constructor" << std::endl;
     tomb = new Tomb<T>;
     tomb->content = NULL;
     tomb->ref_cnt = 0;
-    std::cout << "default constructor" << std::endl;
 }
 
 // copy constructor
+// tomb points to the argument's tomb
+// if the content is not null, then we add the reference count for their shared tomb.
 template <class T>
 Pointer<T>::Pointer(Pointer<T> &p) {
+    std::cout << "copy constructor" << std::endl;
+
     *&tomb = p.tomb;
 
     if (!(tomb->content)) {
@@ -90,19 +95,20 @@ Pointer<T>::Pointer(Pointer<T> &p) {
     else {
         tomb->ref_cnt++;
     }
-
-    std::cout << "copy constructor" << std::endl;
 }
 
+// bootstrap constructor
+// tomb's content point to the given pointer
+// if the pointer is null then we don't ref count it.
 template <class T>
 Pointer<T>::Pointer(T* p) {
-    std::cout << tomb << std::endl;
+//    std::cout << tomb << std::endl;
+    std::cout << "bootstrap constructor" << std::endl;
 
     tomb = new Tomb<T>;
     tomb->content = p;
-    std::cout << "bootstrap: " <<
-              (p == NULL) << (tomb->content == NULL) << std::endl;
 
+    // reference count if p is not null
     if (!(tomb->content)) {
         tomb->ref_cnt = 0;
     }
@@ -111,17 +117,22 @@ Pointer<T>::Pointer(T* p) {
     }
 }
 
+// destructor
+// This function is not for freeing the memory in tomb->content
+// It's for detecting memory leak and tracing of reference count
 template <class T>
 Pointer<T>::~Pointer() {
-    // Still need consideration.
     std::cout << "destructor address: " << this << std::endl;
-    if (tomb->ref_cnt > 0) {
-        if (--(tomb->ref_cnt) == 0) {
-            leak_memory_error();
-        }
+
+    // memory leak if reference count is 1
+    // if there are multiple Pointer have a same tomb (achieved by bootstrap constructor)
+    // then each will minus reference count by one and finally trigger the memory leak message
+    if (--(tomb->ref_cnt) == 0) {
+        leak_memory_error();
     }
 }
 
+// deference
 template <class T>
 T& Pointer<T>::operator*() const {
     std::cout << "deference" << std::endl;
@@ -131,26 +142,29 @@ T& Pointer<T>::operator*() const {
     return *(tomb->content);
 }
 
+// field deference
 template <class T>
 T* Pointer<T>::operator->() const {
     return tomb->content;
 }
 
+// assignment
+// check leak memory error and then point to the tomb of assignment
 template <class T>
 Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
     std::cout << "assignment" << std::endl;
-    
-    if (tomb->ref_cnt > 0) {
-        if (--(tomb->ref_cnt) == 0) {
-            leak_memory_error();
-        }
+
+    // TODO: it simply invoke leak memory if reference count is one
+    // Might have problem in test6
+    if (--(tomb->ref_cnt) == 0) {
+        leak_memory_error();
     }
     tomb = assignment.tomb;
 
-    if (tomb) {
-        if (tomb->content) {
-            tomb->ref_cnt++;
-        }
+    // if right hand side has tomb and content is not null
+    // we then add the reference count
+    if (tomb && tomb->content) {
+        tomb->ref_cnt++;
     }
 
     return *this;
@@ -166,6 +180,7 @@ bool Pointer<T>::operator!=(const Pointer<T>& other) const {
     return tomb->content != (other.tomb)->content;
 }
 
+// For foo == 0
 // Generally, "new" will not return a NULL pointer,
 // so the two overload here will return a not NULL result.
 template <class T>
@@ -173,6 +188,7 @@ bool Pointer<T>::operator==(const int comp) const {
     return (!(tomb->content) && comp == 0) ? 1 : 0;
 }
 
+// For foo != 0
 template <class T>
 bool Pointer<T>::operator!=(const int comp) const {
     std::cout << "comp " << comp << " !=, tomb->content " << tomb->content << std::endl;
@@ -190,11 +206,14 @@ bool operator!=(const int lhs, const Pointer<T>& rhs) {
     return (!(rhs.tomb->content) && lhs == 0) ? 0 : 1;
 }
 
-
+// This free function is the opposite of new, not malloc
+// Call delete on the content of tomb if pass runtime semantic check
+// The runtime semantic check we do now is only allow
 template <class T>
 void free(Pointer<T>& obj) {
     std::cout << "Freeing address: " << (obj.tomb)->content << std::endl;
-    // If reference count is not 1, which means either it's RIP 
+
+    // If reference count is not 1, which means either it's RIP
     // or there are more than 1 pointers pointing to the object.
     if (obj.tomb->ref_cnt != 1) {
         dangling_pointer_error();
