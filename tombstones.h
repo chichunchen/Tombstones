@@ -12,21 +12,23 @@ template <class T, bool check> void free(Pointer<T, check>& obj);
 template <class T, bool check> bool operator==(const int lhs, const Pointer<T, check>& rhs);
 template <class T, bool check> bool operator!=(const int lhs, const Pointer<T, check>& rhs);
 
+// Print dangling pointer error message and gracefully exit
 void dangling_pointer_error() {
     std::cerr << "Dangling reference" << std::endl;
     exit(1);
     // std::terminate();
 }
 
+// Print memory leak error message and gracefully exit
 void leak_memory_error() {
     std::cerr << "Memory leak" << std::endl;
     exit(1);
     // std::terminate();
 }
 
+// Defintion of Tomb for Pointer class
 template <class T>
-class Tomb {
-public:
+struct Tomb {
     T* content;
     int ref_cnt;
 
@@ -40,11 +42,14 @@ public:
     }
 };
 
+// Tombstone implementation
 template <class T, bool check>
 class Pointer {
-public:
+protected:
     Tomb<T>* tomb;
     T* raw_ptr;
+
+public:
 
     Pointer<T, check>();                               // default constructor
     Pointer<T, check>(Pointer<T, check>&);                        // copy constructor
