@@ -5,6 +5,7 @@
 #if !defined(__TOMBSTONES_H__)
 #define __TOMBSTONES_H__
 #include <iostream>
+#include <cstring>
 
 template <class T> class Pointer;
 template <class T> void free(Pointer<T>& obj);
@@ -44,6 +45,7 @@ public:
     Tomb<T>* tomb;
     bool tomb_allocated;                        // true if tomb is allocated
     bool is_null;                               // tomb content is null or not
+    bool fleeting = false;
 
     Pointer<T>();                               // default constructor
     Pointer<T>(Pointer<T>&);                        // copy constructor
@@ -105,7 +107,7 @@ template <class T>
 Pointer<T>::~Pointer() {
     // Need revise
     std::cout << "destructor address: " << this << std::endl;
-    if (tomb->ref_cnt > 0)
+    if (tomb->content && !fleeting)
         leak_memory_error(*this);
 }
 
@@ -136,13 +138,13 @@ template <class T>
 Pointer<T>& Pointer<T>::operator=(T* t) {
     Pointer<T> assignment(t);
 
-
     tomb->ref_cnt--;
     tomb = new Tomb<T>;
     tomb->content = assignment.tomb->content;
     tomb->ref_cnt = assignment.tomb->ref_cnt;
+    
+    assignment.fleeting = true;
 
-    free(assignment);
     return *this;
 }
 
@@ -177,8 +179,7 @@ void free(Pointer<T>& obj) {
         dangling_pointer_error(obj);
     }
     else {
-//        free((obj.tomb)->content);
-        free(obj.tomb->content);
+        free((obj.tomb)->content);
         obj.tomb->ref_cnt = 0;
         (obj.tomb)->content = NULL;
     }
