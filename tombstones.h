@@ -10,17 +10,16 @@
 template <class T> class Pointer;
 template <class T> void free(Pointer<T>& obj);
 
-template <class T>
-void dangling_pointer_error(Pointer<T>& obj) {
-    std::cerr << "Dangling reference, address: " << (obj.tomb)->content << std::endl;
-//    exit(1);
-    std::terminate();
+void dangling_pointer_error() {
+    std::cerr << "Dangling reference" << std::endl;
+    exit(1);
+    // std::terminate();
 }
 
-template <class T>
-void leak_memory_error(Pointer<T>& obj) {
-    std::cerr << "Memory leak, address: " << (obj.tomb)->content << std::endl;
-    std::terminate();
+void leak_memory_error() {
+    std::cerr << "Memory leak" << std::endl;
+    exit(1);
+    // std::terminate();
 }
 
 template <class T>
@@ -108,12 +107,15 @@ Pointer<T>::~Pointer() {
     // Need revise
     std::cout << "destructor address: " << this << std::endl;
     if (tomb->content && !fleeting)
-        leak_memory_error(*this);
+        leak_memory_error();
 }
 
 template <class T>
 T& Pointer<T>::operator*() const {
     std::cout << "deference" << std::endl;
+    if (!tomb->content) {
+        dangling_pointer_error();
+    }
     return *(tomb->content);
 }
 
@@ -176,7 +178,7 @@ void free(Pointer<T>& obj) {
     std::cout << "Freeing address: " << (obj.tomb)->content << std::endl;
     // if null and reference count is 0
     if (!((obj.tomb)->content) || obj.tomb->ref_cnt == 0) {
-        dangling_pointer_error(obj);
+        dangling_pointer_error();
     }
     else {
         free((obj.tomb)->content);
