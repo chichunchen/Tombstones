@@ -16,7 +16,7 @@ void error(const char *text)
 
 void proc()
 {
-    Pointer<int> foo(new int(12));
+    Pointer<int, true> foo(new int(12));
 }
 
 int main(int argc, char **argv)

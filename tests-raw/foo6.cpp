@@ -14,17 +14,17 @@ void error(const char *text)
     exit(-1);
 }
 
-Pointer<int, true> &rec(int n, Pointer<int, true> foo)
+Pointer<int, false> &rec(int n, Pointer<int, false> foo)
 {
-  static Pointer<int, true> result(new int(*foo));
+  static Pointer<int, false> result(new int(*foo));
   if (0 == n)
     return result;
-  result = (Pointer<int, true>&)(rec(n-1, foo));
+  result = (Pointer<int, false>&)(rec(n-1, foo));
   *result += 1;
   return result;
 }
 
-Pointer<int, true> &recref(int n, Pointer<int, true> &foo)
+Pointer<int, false> &recref(int n, Pointer<int, false> &foo)
 {
   if (0 == n)
     return foo;
@@ -34,8 +34,8 @@ Pointer<int, true> &recref(int n, Pointer<int, true> &foo)
 
 void proc()
 {
-    Pointer<int, true> foo(new int(0));
-    Pointer<int, true> bar(rec(100, foo));
+    Pointer<int, false> foo(new int(0));
+    Pointer<int, false> bar(rec(100, foo));
 
     if (*bar != 100 || *foo != 0)
       error("Foo or bar incorrect after rec()!");

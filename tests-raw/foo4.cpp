@@ -16,7 +16,7 @@ void error(const char *text)
 
 int main(int argc, char **argv)
 {
-    Pointer<int, true> foo;
+    Pointer<int, false> foo;
     free(foo);
     error("Didn't blow up when releasing uninitialized pointer!");
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-// foo4.cpp, test file for CS254, assignment 5
+// foo5.cpp, test file for CS254, assignment 5
 /////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
@@ -14,11 +14,15 @@ void error(const char *text)
     exit(-1);
 }
 
+void proc()
+{
+    Pointer<int, false> foo(new int(12));
+}
+
 int main(int argc, char **argv)
 {
-    Pointer<int, true> foo;
-    free(foo);
-    error("Didn't blow up when releasing uninitialized pointer!");
+    proc();
+    error("Didn't blow up when leaking memory!");
 
     return 0;
 }

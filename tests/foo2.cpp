@@ -16,25 +16,25 @@ void error(const char *text)
 
 int main(int argc, char **argv)
 {
-    Pointer<int> foo;
+    Pointer<int, true> foo;
     foo = new int(12);
-    Pointer<int> bar(foo);
+    Pointer<int, true> bar(foo);
 
     if (bar == 0)
-	Error("Bar should not be null!");
+      error("Bar should not be null!");
     if (*bar != 12)
-	Error("Bar got the wrong value!");
+      error("Bar got the wrong value!");
     if (foo != bar)
-	Error("Foo and bar are NOT distinct pointers!");
+      error("Foo and bar are NOT distinct pointers!");
     if (*foo != *bar)
-	Error("Foo and bar should have the same value here!");
+      error("Foo and bar should have the same value here!");
     *foo = 15;
     if (*bar != 15)
-	Error("Bar should still match foo!");
+      error("Bar should still match foo!");
 
     free(foo);
     free(bar);
-    Error("Attempt to double-delete pointer not flagged!");
+    error("Attempt to double-delete pointer not flagged!");
 
     return 0;
 }

@@ -14,12 +14,12 @@ void error(const char *text)
     exit(-1);
 }
 
-void sub(Pointer<int, true> &foo)
+void sub(Pointer<int, false> &foo)
 {
-    Pointer<int, true> bar(foo);
-    Pointer<int, true> bat(bar);
-    Pointer<int, true> qix(bat);
-    Pointer<int, true> glorch(qix);
+    Pointer<int, false> bar(foo);
+    Pointer<int, false> bat(bar);
+    Pointer<int, false> qix(bat);
+    Pointer<int, false> glorch(qix);
 
     *glorch = 100;
     if (*foo != 100)
@@ -30,7 +30,7 @@ void sub(Pointer<int, true> &foo)
 
 int main(int argc, char **argv)
 {
-    Pointer<int, true> foo(new int(0));
+    Pointer<int, false> foo(new int(0));
     sub(foo);
     *foo = 1000;
     error("Didn't complain about use of dangling pointer foo!");

@@ -24,8 +24,8 @@ twoints;
 
 int main(int argc, char **argv)
 {
-    Pointer<int, true> foo(new int(12));
-    Pointer<twoints, true> bar(new twoints(12,12));
+    Pointer<int, false> foo(new int(12));
+    Pointer<twoints, false> bar(new twoints(12,12));
 
     if (*foo != bar->a || *foo != bar->b)
       error("Foo, bar->a, and bar->b should all be 12");

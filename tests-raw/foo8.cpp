@@ -14,9 +14,9 @@ void error(const char *text)
     exit(-1);
 }
 
-void fun(Pointer<int, true> &foo, int n)
+void fun(Pointer<int, false> &foo, int n)
 {
-    Pointer<int, true> bar(foo);
+    Pointer<int, false> bar(foo);
 
     if (n == 0)
       *bar = 100;
@@ -34,9 +34,9 @@ void fun(Pointer<int, true> &foo, int n)
 
 int main(int argc, char **argv)
 {
-  Pointer<int, true> foo(new int(0));
+  Pointer<int, false> foo(new int(0));
   fun(foo, 10);
-  Pointer<int, true> bar(foo);
+  Pointer<int, false> bar(foo);
   error("Didn't complain about use of dangling pointer foo!");
 
   return 0;
