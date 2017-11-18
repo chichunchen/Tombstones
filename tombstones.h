@@ -84,11 +84,16 @@ template <class T>
 Pointer<T>::Pointer(Pointer<T> &p) {
     *&tomb = p.tomb;
 
-    if (p.tomb->ref_cnt <= 0) {
-        dangling_pointer_error();
+//    if (p.tomb->ref_cnt <= 0) {
+//        dangling_pointer_error();
+//    }
+    if (!(tomb->content)) {
+        tomb->ref_cnt = 0;
+    }
+    else {
+        tomb->ref_cnt++;
     }
 
-    p.tomb->ref_cnt++;
     is_null = p.is_null;
     std::cout << "copy constructor" << std::endl;
 }
@@ -102,7 +107,13 @@ Pointer<T>::Pointer(T* p) {
     is_null = (p == NULL) ? true : false;
     std::cout << "bootstrap: " <<
               (p == NULL) << (tomb->content == NULL) << std::endl;
-    tomb->ref_cnt = 1;
+
+    if (!(tomb->content)) {
+        tomb->ref_cnt = 0;
+    }
+    else {
+        tomb->ref_cnt = 1;
+    }
 }
 
 template <class T>
@@ -130,13 +141,20 @@ T* Pointer<T>::operator->() const {
 
 template <class T>
 Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
-    std::cout << "assignemnt" << std::endl;
+    std::cout << "assignment" << std::endl;
 
     tomb->ref_cnt--;
-    tomb = assignment.tomb;
-    if (tomb) {
-        tomb->ref_cnt++;
+    if (tomb->ref_cnt == 0) {
+        //
     }
+    tomb = assignment.tomb;
+
+    if (tomb) {
+        if (tomb->content) {
+            tomb->ref_cnt++;
+        }
+    }
+
     return *this;
 }
 
@@ -181,7 +199,7 @@ template <class T>
 void free(Pointer<T>& obj) {
     std::cout << "Freeing address: " << (obj.tomb)->content << std::endl;
     // if null and reference count is 0
-    if (!((obj.tomb)->content) || obj.tomb->ref_cnt == 0) {
+    if (obj.tomb->ref_cnt != 1) {
         dangling_pointer_error();
     }
     else {
