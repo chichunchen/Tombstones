@@ -83,9 +83,12 @@ Pointer<T>::Pointer() {
 template <class T>
 Pointer<T>::Pointer(Pointer<T> &p) {
     *&tomb = p.tomb;
-    if (!(tomb->content)) {
-        p.tomb->ref_cnt++;
+
+    if (p.tomb->ref_cnt <= 0) {
+        dangling_pointer_error();
     }
+
+    p.tomb->ref_cnt++;
     is_null = p.is_null;
     std::cout << "copy constructor" << std::endl;
 }
@@ -106,7 +109,8 @@ template <class T>
 Pointer<T>::~Pointer() {
     // Need revise
     std::cout << "destructor address: " << this << std::endl;
-    if (tomb->content && !fleeting)
+    tomb->ref_cnt--;
+    if (tomb->ref_cnt == 0 && !fleeting)
         leak_memory_error();
 }
 
