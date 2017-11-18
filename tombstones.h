@@ -118,7 +118,6 @@ Pointer<T>::Pointer(T* p) {
 
 template <class T>
 Pointer<T>::~Pointer() {
-    // Need revise
     std::cout << "destructor address: " << this << std::endl;
     tomb->ref_cnt--;
     if (tomb->ref_cnt == 0 && !fleeting)
@@ -145,7 +144,7 @@ Pointer<T>& Pointer<T>::operator=(const Pointer<T>& assignment) {
 
     tomb->ref_cnt--;
     if (tomb->ref_cnt == 0) {
-        //
+        leak_memory_error();
     }
     tomb = assignment.tomb;
 
