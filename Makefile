@@ -7,6 +7,7 @@ all:
 	g++ -o foo6 tests/foo6.cpp -I.
 	g++ -o foo7 tests/foo7.cpp -I.
 	g++ -o foo8 tests/foo8.cpp -I.
+	g++ -o foo9 tests/foo9.cpp -I.
 
 clean:
 	rm foo*

@@ -1,2 +1,3 @@
 *.swp
 foo*
+!tests/foo*
