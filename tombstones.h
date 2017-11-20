@@ -9,26 +9,25 @@
 
 template <class T, bool check> class Pointer;
 template <class T, bool check> void free(Pointer<T, check>& obj);
+template <class T, bool check> T* operator+(const int lhs, const Pointer<T, check>& rhs);
 template <class T, bool check> bool operator==(const int lhs, const Pointer<T, check>& rhs);
 template <class T, bool check> bool operator!=(const int lhs, const Pointer<T, check>& rhs);
 
-// Print dangling pointer error message and gracefully exit
 void dangling_pointer_error() {
     std::cerr << "Dangling reference" << std::endl;
     exit(1);
     // std::terminate();
 }
 
-// Print memory leak error message and gracefully exit
 void leak_memory_error() {
     std::cerr << "Memory leak" << std::endl;
     exit(1);
     // std::terminate();
 }
 
-// Defintion of Tomb for Pointer class
 template <class T>
-struct Tomb {
+class Tomb {
+public:
     T* content;
     int ref_cnt;
 
@@ -42,14 +41,11 @@ struct Tomb {
     }
 };
 
-// Tombstone implementation
 template <class T, bool check>
 class Pointer {
-protected:
+public:
     Tomb<T>* tomb;
     T* raw_ptr;
-
-public:
 
     Pointer<T, check>();                               // default constructor
     Pointer<T, check>(Pointer<T, check>&);                        // copy constructor
@@ -74,6 +70,17 @@ public:
     // overloading for (0 == p) and (0 != p) cases.
     template <class U> friend bool operator==(const int, const Pointer<U, check>&);
     template <class U> friend bool operator!=(const int, const Pointer<U, check>&);
+    
+    // overloading for compatibility with arrays.
+    T* operator+(const int);
+    T* operator-(const int);
+    Pointer<T, check>& operator+=(const int);
+    Pointer<T, check>& operator-=(const int);
+    Pointer<T, check>& operator++();
+    Pointer<T, check>& operator--();
+    int operator-(const Pointer<T, check>&) const;
+    template <class U> friend T* operator+(const int, const Pointer<U, check>&);
+
 };
 
 // default constructor
@@ -265,6 +272,17 @@ bool operator!=(const int lhs, const Pointer<T, check>& rhs) {
     }
 }
 
+// If the return type is Pointer<T, check>,
+// there will be a lot of errors concerning const, &, *...
+template <class T, bool check>    
+T* Pointer<T, check>::operator+(const int rhs) {
+    if (check) {
+        return tomb->content + rhs;
+    } else {
+        return raw_ptr + rhs;
+    }
+}
+    
 // This free function is the opposite of new, not malloc
 // Call delete on the content of tomb if pass runtime semantic check
 // The runtime semantic check we do now is only allow
