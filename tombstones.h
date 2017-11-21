@@ -13,15 +13,15 @@ template <class T, bool check> bool operator==(const int lhs, const Pointer<T, c
 template <class T, bool check> bool operator!=(const int lhs, const Pointer<T, check>& rhs);
 
 // Print dangling pointer error message and gracefully exit
-void dangling_pointer_error() {
-    std::cerr << "Dangling reference" << std::endl;
+void dangling_pointer_error(int lineno) {
+    std::cerr << "Dangling reference at tombstones.h line: " << lineno << std::endl;
     exit(1);
     // std::terminate();
 }
 
 // Print memory leak error message and gracefully exit
-void leak_memory_error() {
-    std::cerr << "Memory leak" << std::endl;
+void leak_memory_error(int lineno) {
+    std::cerr << "Memory leak at tombstones.h line: " << lineno << std::endl;
     exit(1);
     // std::terminate();
 }
@@ -147,7 +147,7 @@ Pointer<T, check>::~Pointer() {
         // if there are multiple Pointer have a same tomb (achieved by bootstrap constructor)
         // then each will minus reference count by one and finally trigger the memory leak message
         if (--(tomb->ref_cnt) == 0) {
-            leak_memory_error();
+            leak_memory_error(__LINE__);
         }
     } else {
 
@@ -160,7 +160,7 @@ T& Pointer<T, check>::operator*() const {
     if (check) {
         std::cout << "deference" << std::endl;
         if (!tomb->content) {
-            dangling_pointer_error();
+            dangling_pointer_error(__LINE__);
         }
         return *(tomb->content);
     } else {
@@ -189,7 +189,7 @@ Pointer<T, check>& Pointer<T, check>::operator=(const Pointer<T, check>& assignm
         // TODO: it simply invoke leak memory if reference count is one
         // Might have problem in test6
         if (--(tomb->ref_cnt) == 0) {
-            leak_memory_error();
+            leak_memory_error(__LINE__);
         }
         tomb = assignment.tomb;
 
@@ -276,7 +276,7 @@ void free(Pointer<T, check>& obj) {
         // If reference count is not 1, which means either it's RIP
         // or there are more than 1 pointers pointing to the object.
         if (obj.tomb->ref_cnt != 1) {
-            dangling_pointer_error();
+            dangling_pointer_error(__LINE__);
         }
         else {
             delete obj.tomb->content;
