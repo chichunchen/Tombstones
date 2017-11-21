@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     foo->test = 0;
 
     // foo can call its own method
-    cout << foo->getArea() << endl;
+    cout << "foo->getArea() - from derived class" << foo->getArea() << endl;
     
     free(foo);
 

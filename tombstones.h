@@ -83,7 +83,7 @@ public:
 template <class T, bool check>
 Pointer<T, check>::Pointer() {
     if (check) {
-        std::cout << "default constructor" << std::endl;
+        // std::cout << "default constructor" << std::endl;
         tomb = new Tomb<T>;
         tomb->content = NULL;
         tomb->ref_cnt = 0;
@@ -98,7 +98,7 @@ Pointer<T, check>::Pointer() {
 template <class T, bool check>
 Pointer<T, check>::Pointer(Pointer<T, check> &p) {
     if (check) {
-        std::cout << "copy constructor" << std::endl;
+        // std::cout << "copy constructor" << std::endl;
 
         *&tomb = p.tomb;
 
@@ -119,7 +119,7 @@ Pointer<T, check>::Pointer(Pointer<T, check> &p) {
 template <class T, bool check>
 Pointer<T, check>::Pointer(T* p) {
     if (check) {
-        std::cout << "bootstrap constructor" << std::endl;
+        // std::cout << "bootstrap constructor" << std::endl;
 
         tomb = new Tomb<T>;
         tomb->content = p;
@@ -143,7 +143,7 @@ Pointer<T, check>::Pointer(T* p) {
 template <class T, bool check>
 Pointer<T, check>::~Pointer() {
     if (check) {
-        std::cout << "destructor address: " << this << std::endl;
+        // std::cout << "destructor address: " << this << std::endl;
 
         // memory leak if reference count reaches 0 and content not NULL
         // if there are multiple Pointer have a same tomb (achieved by bootstrap constructor)
@@ -170,7 +170,7 @@ Pointer<T, check>::operator T*() {
 template <class T, bool check>
 T& Pointer<T, check>::operator*() const {
     if (check) {
-        std::cout << "deference" << std::endl;
+        // std::cout << "deference" << std::endl;
         if (!tomb->content) {
             dangling_pointer_error(__LINE__);
         }
@@ -195,7 +195,7 @@ T* Pointer<T, check>::operator->() const {
 template <class T, bool check>
 Pointer<T, check>& Pointer<T, check>::operator=(const Pointer<T, check>& assignment) {
     if (check) {
-        std::cout << "assignment" << std::endl;
+        // std::cout << "assignment" << std::endl;
 
         // TODO: it simply invoke leak memory if reference count reaches 0 and content not NULL
         // Might have problem in test6
@@ -250,7 +250,7 @@ bool Pointer<T, check>::operator==(const int comp) const {
 template <class T, bool check>
 bool Pointer<T, check>::operator!=(const int comp) const {
     if (check) {
-        std::cout << "comp " << comp << " !=, tomb->content " << tomb->content << std::endl;
+        // std::cout << "comp " << comp << " !=, tomb->content " << tomb->content << std::endl;
         return (!(tomb->content) && comp == 0) ? 0 : 1;
     } else {
         return (!raw_ptr && comp == 0) ? 0 : 1;
@@ -282,7 +282,7 @@ bool operator!=(const int lhs, const Pointer<T, check>& rhs) {
 template <class T, bool check>
 void free(Pointer<T, check>& obj) {
     if (check) {
-        std::cout << "Freeing address: " << (obj.tomb)->content << std::endl;
+        // std::cout << "Freeing address: " << (obj.tomb)->content << std::endl;
 
         // If reference count is not 1, which means either it's RIP
         // or there are more than 1 pointers pointing to the object.
