@@ -143,10 +143,10 @@ Pointer<T, check>::~Pointer() {
     if (check) {
         std::cout << "destructor address: " << this << std::endl;
 
-        // memory leak if reference count is 1
+        // memory leak if reference count reaches 0 and content not NULL
         // if there are multiple Pointer have a same tomb (achieved by bootstrap constructor)
         // then each will minus reference count by one and finally trigger the memory leak message
-        if (--(tomb->ref_cnt) == 0) {
+        if (--(tomb->ref_cnt) == 0 && tomb->content) {
             leak_memory_error(__LINE__);
         }
     } else {
@@ -186,9 +186,9 @@ Pointer<T, check>& Pointer<T, check>::operator=(const Pointer<T, check>& assignm
     if (check) {
         std::cout << "assignment" << std::endl;
 
-        // TODO: it simply invoke leak memory if reference count is one
+        // TODO: it simply invoke leak memory if reference count reaches 0 and content not NULL
         // Might have problem in test6
-        if (--(tomb->ref_cnt) == 0) {
+        if (--(tomb->ref_cnt) == 0 && tomb->content) {
             leak_memory_error(__LINE__);
         }
         tomb = assignment.tomb;
