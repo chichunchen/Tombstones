@@ -37,7 +37,7 @@ class Circle: public Base {
 
 int main(int argc, char **argv)
 {
-    Pointer<Circle, true> foo(new Circle());
+    Pointer<Circle, false> foo(new Circle());
 
     // foo can call the method in its base class
     foo->setRadius(1);

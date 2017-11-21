@@ -1,3 +1,4 @@
 *.swp
 foo*
 !tests/foo*
+!tests-raw/foo*
