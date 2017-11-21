@@ -59,7 +59,9 @@ public:
     T& operator*() const;                   // deferencing
     T* operator->() const;                  // field dereferencing
     Pointer<T, check>& operator=(const Pointer<T, check>&);       // assignment
-//    Pointer<T>& operator=(T*);                // assignment2
+
+    // Overloading type cast to T* 
+    operator T*();
     friend void free<T, check>(Pointer<T, check>&);           // delete pointed-at object
         // This is essentially the inverse of the new inside the call to
         // the bootstrapping constructor.
@@ -154,6 +156,16 @@ Pointer<T, check>::~Pointer() {
     }
 }
 
+template <class T, bool check>
+Pointer<T, check>::operator T*() {
+    if (check) {
+        return tomb->content;
+    } else {
+        return raw_ptr;
+    }
+
+}
+
 // deference
 template <class T, bool check>
 T& Pointer<T, check>::operator*() const {
@@ -182,7 +194,6 @@ T* Pointer<T, check>::operator->() const {
 // check leak memory error and then point to the tomb of assignment
 template <class T, bool check>
 Pointer<T, check>& Pointer<T, check>::operator=(const Pointer<T, check>& assignment) {
-    std::cout << check << std::endl;
     if (check) {
         std::cout << "assignment" << std::endl;
 
